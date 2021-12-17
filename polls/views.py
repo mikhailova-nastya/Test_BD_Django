@@ -2,7 +2,7 @@ from django.shortcuts import render
 
 
 from django.http import HttpResponse
-from django.db.models import Min, Max
+from django.db.models import Min, Max, Sum
 
 from .models import Product
 from .models import Sell
@@ -50,18 +50,11 @@ def report2(request):
 
     fm = Sell.objects.aggregate(Max('time_of_purchase')) #the latest time of purchase
     fmin = Sell.objects.aggregate(Min('time_of_purchase')) #the earliest time of purchase
+
     delta=(fm['time_of_purchase__max']-fmin['time_of_purchase__min']).days #total days
 
-
-    s = 0
-    for i in sold:
-        s+=i.amount_of_items #total sold items with Category Discount
-
-
-    k = 0
-    for i in sold_full_price:
-        k+=i.amount_of_items #total sold items without Category Discount
-
+    s = sold.aggregate(Sum('amount_of_items'))['amount_of_items__sum'] #total sold items with Category Discount
+    k = sold_full_price.aggregate(Sum('amount_of_items'))['amount_of_items__sum']  # total sold items without Category Discount
 
     avg = s/delta #avg items sold with Category Discount per day
     avg_full_price = k/delta #avg items sold without Category Discount per day
@@ -90,16 +83,9 @@ def report3(request):
     fmin = Sell.objects.aggregate(Min('time_of_purchase')) #the earliest time of purchase
     delta=(fm['time_of_purchase__max']-fmin['time_of_purchase__min']).days #total days
 
-    s = 0
-    for i in sold:
-        s+=i.amount_of_items #total sold items with Discount
-
-
-    k = 0
-    for i in sold_full_price:
-        k+=i.amount_of_items #total sold items without Discount
-
-
+    s = sold.aggregate(Sum('amount_of_items'))['amount_of_items__sum'] #total sold items with Discount
+    k = sold_full_price.aggregate(Sum('amount_of_items'))['amount_of_items__sum']  #total sold items without Discount
+    
     avg = s/delta #avg items sold with Discount per day
     avg_full_price = k/delta #avg items sold without Discount per day
 
