@@ -29,6 +29,8 @@ def report1(request):
     writer = csv.writer(response)
     writer.writerow(['Time', 'Item', 'Price', 'Discount', 'Discount Value'])
 
+    # Этот отчет готовит данные за определенный день, а не за "любой день"
+    # так же стоит обратить внимание на диапазоны - time_of_purchase__gt => time_of_purchase__gte
     for p in Sell.objects.filter(time_of_purchase__gt=datetime(2021, 12, 2), time_of_purchase__lt=datetime(2021, 12, 4)).values_list('time_of_purchase', 'product__item', 'product__price', 'disc__disc_title', 'disc__disc_value'):
         writer.writerow(p)
 
@@ -61,7 +63,7 @@ def report2(request):
 
 #table
     for p in Sell.objects.filter(disc__category__isnull=False).values_list('disc__disc_title', 'disc__category__category'):
-        writer.writerow([p[0],p[1], avg, avg_full_price])
+        writer.writerow([p[0],p[1], avg, avg_full_price])  # Выглядит так, что это общие данные, а не для каждой из категорий
 
 
     response['Content-Disposition'] = 'attachment; filename = "report2.csv"'
@@ -91,7 +93,7 @@ def report3(request):
 
 #table
     for p in Sell.objects.filter(disc__isnull=False).values_list('disc__disc_title', 'product__item'):
-        writer.writerow([p[0],p[1], avg, avg_full_price])
+        writer.writerow([p[0],p[1], avg, avg_full_price])  # Выглядит так, что это общие данные, а не для каждого продукта и скидки
 
 
     response['Content-Disposition'] = 'attachment; filename = "report3.csv"'
