@@ -6,10 +6,10 @@
 
 Category: category. 
 
-Product: item, description, category(ref. to Category), price
+Product: name, description, category(ref. to Category), price
 
 Customer: email, name
 
-Discount: disc_title, disc_value, category(ref. to Category)
+Discount: title, value, category(ref. to Category)
 
-Sell: customer(ref. to Customer), time_of_purchase, product(ref. to Product), amount_of_items, disc(ref. to Discount)
+Sell: customer(ref. to Customer), time_of_purchase, product(ref. to Product), amount_of_items, discount(ref. to Discount)
