@@ -12,9 +12,11 @@ from datetime import datetime, timedelta
 
 import csv
 
+
 # start page
 def index(request):
     return render(request, 'store/index.html')
+
 
 # report N1
 
@@ -54,7 +56,8 @@ def report1(request):
     response['Content-Disposition'] = 'attachment; filename = "report1.csv"'
     return response
 
-#report N2
+
+# report N2
 
 def report2(request):
     response = HttpResponse(content_type='text/csv')
@@ -69,7 +72,7 @@ def report2(request):
     fmin = Sell.objects.aggregate(Min('time_of_purchase'))
 
     delta = (fm['time_of_purchase__max']
-           - fmin['time_of_purchase__min']).days
+             - fmin['time_of_purchase__min']).days
 
     # categories with discounts
     for cat in list(Discount.objects.filter(
@@ -78,21 +81,22 @@ def report2(request):
         # sold with discounts
         avg_discount = Sell.objects.filter(
             discount__category__isnull=False).filter(
-            discount__category__category = cat).aggregate(
+            discount__category__category=cat).aggregate(
             Sum('amount_of_items'))['amount_of_items__sum'] / delta
 
         # sold without discounts
         avg = Sell.objects.filter(
             discount__category__isnull=True).filter(
-            product__category__category = cat).aggregate(
+            product__category__category=cat).aggregate(
             Sum('amount_of_items'))['amount_of_items__sum'] / delta
 
-        name = Discount.objects.filter(category__isnull=False).get(category__category = cat)
+        name = Discount.objects.filter(category__isnull=False).get(category__category=cat)
 
         writer.writerow([name, cat, avg_discount, avg])
 
     response['Content-Disposition'] = 'attachment; filename = "report2.csv"'
     return response
+
 
 # report N3
 
@@ -111,14 +115,14 @@ def report3(request):
     fmin = Sell.objects.aggregate(Min('time_of_purchase'))
     # total days
     delta = (fm['time_of_purchase__max']
-           - fmin['time_of_purchase__min']).days
+             - fmin['time_of_purchase__min']).days
 
     # all discounts
     for disc in list(Discount.objects.values_list('id', flat=True)):
         discount = Discount.objects.get(id=disc)
 
         # no one item was sold with a such discount
-        if list(Sell.objects.filter(discount = disc))==[]:
+        if not list(Sell.objects.filter(discount=disc)):
             avg_discount = 0
             avg = Sell.objects.aggregate(Sum('amount_of_items'))['amount_of_items__sum'] / delta
             product = _('All items')
@@ -126,11 +130,11 @@ def report3(request):
         else:
             # products
             for prod in list(Sell.objects.filter(
-                    discount = disc).values_list('product', flat=True).distinct()):
+                    discount=disc).values_list('product', flat=True).distinct()):
                 product = Product.objects.get(id=prod)
 
                 # no one item was sold without this discount
-                if list(Sell.objects.filter(product=prod).filter(discount__isnull=True))==[]:
+                if not list(Sell.objects.filter(product=prod).filter(discount__isnull=True)):
                     avg = 0
                     avg_discount = Sell.objects.filter(product=prod).filter(
                         discount=disc).aggregate(
@@ -148,4 +152,3 @@ def report3(request):
 
     response['Content-Disposition'] = 'attachment; filename = "report3.csv"'
     return response
-
